@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMG RESELLS — Card Inventory</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--text:#172033;--muted:#6b7280;--line:#e5e7eb;--accent:#e53935;--accent2:#b91c1c;--green:#138a52;--shadow:0 8px 25px rgba(20,30,50,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#151922;color:white;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:21px}.logo span{color:#ffcb05}.tag{font-size:12px;color:#b8bfcc}
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 24px;display:flex;gap:8px;position:sticky;top:67px;z-index:9}
+nav button{border:0;background:none;padding:15px 16px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:1250px;margin:26px auto;padding:0 20px}.view{display:none}.view.active{display:block}
+h1{margin:0 0 5px;font-size:28px}.sub{color:var(--muted);margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.stat{background:var(--card);padding:20px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}.stat .label{color:var(--muted);font-size:13px}.stat .value{font-size:26px;font-weight:850;margin-top:8px}.green{color:var(--green)}.red{color:var(--accent)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px;margin-top:20px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:15px}input,select{border:1px solid #d6dae3;border-radius:10px;padding:11px 12px;background:white;font:inherit;min-width:150px}input.search{flex:1;min-width:220px}
+button.primary,.primary{background:var(--accent);color:white;border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer}.primary:hover{background:var(--accent2)}
+button.secondary{background:#eef1f6;border:0;border-radius:10px;padding:11px 16px;font-weight:750;cursor:pointer}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);font-size:14px}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}td strong{font-weight:800}.pill{padding:5px 8px;border-radius:99px;background:#eef1f6;font-size:12px;font-weight:750}.pill.in{background:#e7f7ef;color:#147a4b}.pill.sold{background:#fbe8e8;color:#a51e1e}
+.actions button{border:0;background:#eef1f6;border-radius:8px;padding:7px 9px;margin-right:4px;cursor:pointer}.actions .sell{background:#e7f7ef;color:#147a4b}
+.empty{text-align:center;padding:45px;color:var(--muted)}
+.modal{display:none;position:fixed;inset:0;background:rgba(10,15,25,.55);z-index:30;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.modalbox{background:white;border-radius:18px;padding:24px;max-width:650px;width:100%;max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#eef1f6;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:18px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:800;color:var(--muted)}.formactions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}table{display:block;overflow-x:auto;white-space:nowrap}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:520px){header{padding:15px}.grid{grid-template-columns:1fr 1fr}.stat .value{font-size:21px}nav{padding:0 8px;overflow:auto}nav button{padding:13px 10px}main{padding:0 12px}}
+</style>
+</head>
+<body>
+<header><div class="logo">⚡ CMG <span>RESELLS</span></div><div class="tag">Personal inventory system</div></header>
+<nav>
+<button class="tab active" data-view="dashboard">Dashboard</button>
+<button class="tab" data-view="inventory">Inventory</button>
+<button class="tab" data-view="sales">Sales</button>
+</nav>
+
+<main>
+<section id="dashboard" class="view active">
+<h1>Dashboard</h1><div class="sub">Your Pokémon resale business at a glance.</div>
+<div class="grid">
+<div class="stat"><div class="label">Cards in Stock</div><div class="value" id="sQty">0</div></div>
+<div class="stat"><div class="label">Inventory Value</div><div class="value" id="sValue">$0.00</div></div>
+<div class="stat"><div class="label">Money Invested</div><div class="value" id="sCost">$0.00</div></div>
+<div class="stat"><div class="label">Potential Profit</div><div class="value green" id="sPotential">$0.00</div></div>
+</div>
+<div class="grid" style="margin-top:15px">
+<div class="stat"><div class="label">Total Sales</div><div class="value" id="sSales">$0.00</div></div>
+<div class="stat"><div class="label">Realized Profit</div><div class="value green" id="sProfit">$0.00</div></div>
+<div class="stat"><div class="label">Cards Sold</div><div class="value" id="sSold">0</div></div>
+<div class="stat"><div class="label">Average Profit / Sale</div><div class="value" id="sAvg">$0.00</div></div>
+</div>
+<div class="panel"><h2 style="margin-top:0">Recent Inventory</h2><div id="recent"></div></div>
+</section>
+
+<section id="inventory" class="view">
+<h1>Inventory</h1><div class="sub">Everything you currently own for resale.</div>
+<div class="panel">
+<div class="toolbar"><input class="search" id="search" placeholder="Search card, set, number..."><select id="conditionFilter"><option value="">All conditions</option><option>NM</option><option>LP</option><option>MP</option><option>HP</option><option>DMG</option></select><button class="primary" onclick="openAdd()">＋ Add Card</button></div>
+<div id="inventoryTable"></div>
+</div>
+</section>
+
+<section id="sales" class="view">
+<h1>Sales History</h1><div class="sub">Track what sold and how much you made.</div>
+<div class="panel"><div id="salesTable"></div></div>
+</section>
+</main>
+
+<div class="modal" id="cardModal"><div class="modalbox">
+<div class="modalhead"><h2 id="modalTitle">Add Card</h2><button class="close" onclick="closeModal()">×</button></div>
+<form id="cardForm"><input type="hidden" id="editId">
+<div class="formgrid">
+<div class="field"><label>Card Name *</label><input id="name" required placeholder="Charizard ex"></div>
+<div class="field"><label>Set</label><input id="set" placeholder="151"></div>
+<div class="field"><label>Card Number</label><input id="number" placeholder="199/165"></div>
+<div class="field"><label>Condition</label><select id="condition"><option>NM</option><option>LP</option><option>MP</option><option>HP</option><option>DMG</option></select></div>
+<div class="field"><label>Quantity *</label><input id="qty" type="number" min="1" value="1" required></div>
+<div class="field"><label>Purchase Price (per card)</label><input id="buy" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Current Value (per card)</label><input id="current" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Target Sell Price (per card)</label><input id="target" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Purchase Date</label><input id="date" type="date"></div>
+<div class="field"><label>Where Bought</label><input id="source" placeholder="Local, eBay, shop..."></div>
+<div class="field full"><label>Notes</label><input id="notes" placeholder="Binder page, condition notes, etc."></div>
+</div>
+<div class="formactions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button><button class="primary">Save Card</button></div>
+</form></div></div>
+
+<div class="modal" id="sellModal"><div class="modalbox">
+<div class="modalhead"><h2>Mark Card Sold</h2><button class="close" onclick="closeSell()">×</button></div>
+<form id="sellForm"><input type="hidden" id="sellId">
+<p id="sellInfo" style="color:#6b7280"></p>
+<div class="formgrid">
+<div class="field"><label>Quantity Sold</label><input id="sellQty" type="number" min="1" value="1"></div>
+<div class="field"><label>Sold Price (per card)</label><input id="sellPrice" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Fees</label><input id="fees" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Shipping Cost</label><input id="shipping" type="number" min="0" step=".01" value="0"></div>
+<div class="field"><label>Platform</label><select id="platform"><option>eBay</option><option>TCGPlayer</option><option>Local</option><option>Facebook Marketplace</option><option>Other</option></select></div>
+<div class="field"><label>Sale Date</label><input id="saleDate" type="date"></div>
+</div>
+<div class="formactions"><button type="button" class="secondary" onclick="closeSell()">Cancel</button><button class="primary">Record Sale</button></div>
+</form></div></div>
+
+<script>
+const KEY='pokeresell_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"cards":[],"sales":[]}');
+const money=n=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.view).classList.add('active')});
+function renderAll(){renderDashboard();renderInventory();renderSales()}
+function renderDashboard(){
+ const stock=db.cards.reduce((a,c)=>a+Number(c.qty),0), value=db.cards.reduce((a,c)=>a+c.qty*c.current,0), cost=db.cards.reduce((a,c)=>a+c.qty*c.buy,0), target=db.cards.reduce((a,c)=>a+c.qty*c.target,0);
+ const sales=db.sales.reduce((a,s)=>a+s.total,0), profit=db.sales.reduce((a,s)=>a+s.profit,0), sold=db.sales.reduce((a,s)=>a+s.qty,0);
+ sQty.textContent=stock;sValue.textContent=money(value);sCost.textContent=money(cost);sPotential.textContent=money(target-cost);sSales.textContent=money(sales);sProfit.textContent=money(profit);sSold.textContent=sold;sAvg.textContent=money(sold?profit/sold:0);
+ const recent=db.cards.slice().reverse().slice(0,6); recentEl=recent.map(c=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(c.name)}</strong><div style="font-size:12px;color:#6b7280">${esc(c.set||'No set')} • ${esc(c.condition)}</div></div><div><strong>${money(c.current)}</strong><div style="font-size:12px;color:#6b7280">${c.qty} in stock</div></div></div>`).join('');document.getElementById('recent').innerHTML=recentEl||'<div class="empty">No cards yet. Add your first card from Inventory.</div>';
+}
+function renderInventory(){
+ let q=(document.getElementById('search')?.value||'').toLowerCase(), cond=document.getElementById('conditionFilter')?.value||'';
+ let rows=db.cards.filter(c=>(!q||[c.name,c.set,c.number].join(' ').toLowerCase().includes(q))&&(!cond||c.condition===cond));
+ if(!rows.length){inventoryTable.innerHTML='<div class="empty">No cards found.</div>';return}
+ inventoryTable.innerHTML=`<table><thead><tr><th>Card</th><th>Condition</th><th>Qty</th><th>Buy</th><th>Current</th><th>Target</th><th>Potential Profit</th><th>Actions</th></tr></thead><tbody>${rows.map(c=>`<tr><td><strong>${esc(c.name)}</strong><br><small>${esc(c.set||'')}${c.number?' • '+esc(c.number):''}</small></td><td><span class="pill in">${esc(c.condition)}</span></td><td>${c.qty}</td><td>${money(c.buy)}</td><td>${money(c.current)}</td><td>${money(c.target)}</td><td class="green">${money((c.target-c.buy)*c.qty)}</td><td class="actions"><button class="sell" onclick="openSell('${c.id}')">Sell</button><button onclick="editCard('${c.id}')">Edit</button><button onclick="deleteCard('${c.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`;
+}
+function renderSales(){
+ if(!db.sales.length){salesTable.innerHTML='<div class="empty">No sales recorded yet.</div>';return}
+ salesTable.innerHTML=`<table><thead><tr><th>Date</th><th>Card</th><th>Qty</th><th>Revenue</th><th>Fees + Ship</th><th>Profit</th><th>Platform</th></tr></thead><tbody>${db.sales.slice().reverse().map(s=>`<tr><td>${esc(s.date)}</td><td><strong>${esc(s.name)}</strong></td><td>${s.qty}</td><td>${money(s.total)}</td><td>${money(s.fees+s.shipping)}</td><td class="green">${money(s.profit)}</td><td><span class="pill sold">${esc(s.platform)}</span></td></tr>`).join('')}</tbody></table>`;
+}
+document.getElementById('search').oninput=renderInventory;document.getElementById('conditionFilter').onchange=renderInventory;
+function openAdd(){cardForm.reset();editId.value='';qty.value=1;condition.value='NM';date.value=new Date().toISOString().slice(0,10);modalTitle.textContent='Add Card';cardModal.classList.add('show')}
+function editCard(i){let c=db.cards.find(x=>x.id===i);if(!c)return;editId.value=c.id;name.value=c.name;set.value=c.set;number.value=c.number;condition.value=c.condition;qty.value=c.qty;buy.value=c.buy;current.value=c.current;target.value=c.target;date.value=c.date;source.value=c.source;notes.value=c.notes;modalTitle.textContent='Edit Card';cardModal.classList.add('show')}
+function closeModal(){cardModal.classList.remove('show')}
+cardForm.onsubmit=e=>{e.preventDefault();let data={id:editId.value||id(),name:name.value.trim(),set:set.value.trim(),number:number.value.trim(),condition:condition.value,qty:+qty.value,buy:+buy.value||0,current:+current.value||0,target:+target.value||0,date:date.value,source:source.value.trim(),notes:notes.value.trim()};let idx=db.cards.findIndex(x=>x.id===data.id);if(idx>=0)db.cards[idx]=data;else db.cards.push(data);save();closeModal()};
+function deleteCard(i){if(confirm('Delete this card from inventory?')){db.cards=db.cards.filter(x=>x.id!==i);save()}}
+function openSell(i){let c=db.cards.find(x=>x.id===i);if(!c)return;sellId.value=i;sellQty.value=1;sellQty.max=c.qty;sellPrice.value=c.target||c.current;fees.value=0;shipping.value=0;saleDate.value=new Date().toISOString().slice(0,10);sellInfo.textContent=`${c.name} — ${c.qty} available • Cost basis ${money(c.buy)} per card`;sellModal.classList.add('show')}
+function closeSell(){sellModal.classList.remove('show')}
+sellForm.onsubmit=e=>{e.preventDefault();let c=db.cards.find(x=>x.id===sellId.value);if(!c)return;let q=Math.min(+sellQty.value,c.qty), price=+sellPrice.value||0, f=+fees.value||0, sh=+shipping.value||0,total=q*price,profit=total-f-sh-q*c.buy;db.sales.push({id:id(),cardId:c.id,name:c.name,qty:q,price,total,fees:f,shipping:sh,profit,platform:platform.value,date:saleDate.value});c.qty-=q;if(c.qty<=0)db.cards=db.cards.filter(x=>x.id!==c.id);save();closeSell()};
+renderAll();
+</script>
+</body>
+</html>
